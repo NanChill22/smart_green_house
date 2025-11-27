@@ -1,36 +1,29 @@
 <?php
 header('Content-Type: application/json');
 
-// Include the database configuration
 require_once __DIR__ . '/../config/config.php';
 
-$controlStatus = [
-    'kipas1' => false,
-    'kipas2' => false,
-    'pompa' => false
+$response = [
+    'mode' => 'auto',        // sementara auto, bisa ambil dari DB kalau sudah ada
+    'batas_suhu' => 30,      // ambil dari DB jika sudah ada
+    'batas_soil' => 40,      // ambil dari DB jika sudah ada
+    'kipas' => 0,
+    'pompa' => 0
 ];
 
 try {
-    // Get database connection
     $pdo = getDbConnection();
 
-    // Fetch the latest device status (assuming one row in the table)
-    $stmt = $pdo->query("SELECT pompa_status, kipas_status FROM device_status ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->query("SELECT * FROM control_settings ORDER BY id DESC LIMIT 1");
     $status = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($status) {
-        // Map database values (0 or 1) to booleans for the JSON response
-        $controlStatus['pompa'] = (bool)$status['pompa_status'];
-        // Both fans are controlled by a single status
-        $controlStatus['kipas1'] = (bool)$status['kipas_status'];
-        $controlStatus['kipas2'] = (bool)$status['kipas_status'];
+        $response['kipas'] = (int)$status['kipas'];
+        $response['pompa'] = (int)$status['pompa'];
     }
 
 } catch (PDOException $e) {
-    // If there's a database error, we will return the default 'all off' status.
-    // In a production environment, you should log this error.
-    // error_log("GetControlStatus Error: " . $e->getMessage());
+    // error_log("ERR: " . $e->getMessage());
 }
 
-echo json_encode($controlStatus);
-?>
+echo json_encode($response);

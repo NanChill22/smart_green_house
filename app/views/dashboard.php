@@ -31,21 +31,21 @@
                     <div class="col-6 col-sm-6 col-md-2">
                         <div class="stat-card text-center p-3 border rounded mb-2">
                             <h4><i class="bi bi-fan" id="kipas-icon"></i> Kipas</h4>
-                            <p class="fs-3" id="kipas-status"><?= $latestSensorData['kipas_status'] ? 'ON' : 'OFF' ?></p>
+                            <p class="fs-3" id="kipas-status"><?= isset($latestData['kipas_status']) ? ($latestData['kipas_status'] ? 'ON' : 'OFF') : 'OFF' ?></p>
                         </div>
                     </div>
                     <div class="col-6 col-sm-6 col-md-2">
                         <div class="stat-card text-center p-3 border rounded mb-2">
                            <h4><i class="bi bi-water" id="pompa-icon"></i> Pompa</h4>
-                            <p class="fs-3" id="pompa-status"><?= $latestSensorData['pompa_status'] ? 'ON' : 'OFF' ?></p>
+                            <p class="fs-3" id="pompa-status"><?= isset($latestData['pompa_status']) ? ($latestData['pompa_status'] ? 'ON' : 'OFF') : 'OFF' ?></p>
                         </div>
                     </div>
-                     <div class="col-6 col-sm-6 col-md-2">
+                     <!-- <div class="col-6 col-sm-6 col-md-2">
                         <div class="stat-card text-center p-3 border rounded mb-2">
                            <h4><i class="bi bi-gear" id="mode-icon"></i> Mode</h4>
-                            <p class="fs-3 text-capitalize" id="mode-status"><?= htmlspecialchars($latestSensorData['mode']) ?></p>
+                            <p class="fs-3 text-capitalize" id="mode-status"><?= isset($mode) ? ( htmlspecialchars($mode) ? 'OTOMATIS' : 'MANUAL') : 'MANUAL' ?></p>
                         </div>
-                    </div>
+                    </div> -->
                 <?php else: ?>
                     <div class="col" id="no-sensor-data">
                         <div class="alert alert-info">Belum ada data sensor.</div>

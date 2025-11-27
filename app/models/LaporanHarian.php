@@ -9,6 +9,55 @@ class LaporanHarian
         $this->pdo = getDbConnection();
     }
 
+    public function generateTodayReport()
+    {
+        $tanggal = date('Y-m-d');
+
+        // ===============================
+        // 1. RATA-RATA SENSOR
+        // ===============================
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                AVG(suhu) AS suhu_rata,
+                AVG(kelembaban) AS kelembaban_rata
+            FROM sensor_data
+            WHERE DATE(created_at) = ?
+        ");
+        $stmt->execute([$tanggal]);
+        $sensor = $stmt->fetch();
+
+        $suhuRata = $sensor['suhu_rata'] ?? 0;
+        $kelembabanRata = $sensor['kelembaban_rata'] ?? 0;
+
+        // ===============================
+        // 2. DURASI ON POMPA & KIPAS
+        // ===============================
+        $stmt2 = $this->pdo->prepare("
+            SELECT 
+                SUM(CASE WHEN kipas_status = 1 THEN 1 ELSE 0 END) * 5 AS kipas_durasi,
+                SUM(CASE WHEN pompa_status = 1 THEN 1 ELSE 0 END) * 5 AS pompa_durasi
+            FROM device_status
+            WHERE DATE(last_updated) = ?
+        ");
+        $stmt2->execute([$tanggal]);
+        $dev = $stmt2->fetch();
+
+        $pompaDurasi = $dev['pompa_durasi'] ?? 0;
+        $kipasDurasi = $dev['kipas_durasi'] ?? 0;
+
+        // ===============================
+        // 3. INSERT / UPDATE LAPORAN HARIAN
+        // ===============================
+        return $this->createOrUpdate(
+            $tanggal,
+            round($suhuRata, 2),
+            round($kelembabanRata, 2),
+            $pompaDurasi,
+            $kipasDurasi
+        );
+    }
+
+
     /**
      * Get all daily reports.
      *

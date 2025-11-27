@@ -5,10 +5,17 @@ class DashboardController
     private $sensorModel;
     private $laporanHarianModel;
 
+    private function fetchJson($url)
+    {
+        $json = file_get_contents($url);
+        return json_decode($json, true);
+    }
+
     public function __construct()
     {
         $this->sensorModel = new Sensor();
         $this->laporanHarianModel = new LaporanHarian();
+        $this->laporanHarianModel->generateTodayReport();
         $this->checkAuth();
     }
     
@@ -29,11 +36,13 @@ class DashboardController
     public function index()
     {
         $latestSensorData = $this->sensorModel->getLatestLog();
+        $latestDeviceStatus = $this->sensorModel->getDeviceLog();
         $historicalData = $this->sensorModel->getHistoricalData(7); // Get 7 days of historical data
         $dailyReports = $this->laporanHarianModel->findAll();
         
         $data = [
             'latestSensorData' => $latestSensorData,
+            'latestDeviceStatus' => $latestDeviceStatus,
             'historicalData' => $historicalData, // Pass historical data to the view
             'dailyReports' => $dailyReports,
             'title' => 'Dashboard'
@@ -55,22 +64,25 @@ class DashboardController
         view('laporan_harian', $data);
     }
 
-    /**
-     * Show the sensor control page.
-     */
     public function kontrolSensor()
     {
+        // Load JSON dari PHP Native Control
+        $controlStatus = $this->fetchJson(BASE_URL . "sensor/getControlStatus.php");
+
         $latestSensorData = $this->sensorModel->getLatestLog();
         $kontrolLogModel = new KontrolLog();
-        $history = $kontrolLogModel->findAll(10); // Ambil 10 log terakhir
+        $history = $kontrolLogModel->findAll(10);
 
         $data = [
             'latestSensorData' => $latestSensorData,
             'history' => $history,
+            'controlStatus' => $controlStatus, // dikirim ke view
             'title' => 'Kontrol Sensor & Aktuator'
         ];
+
         view('kontrol_sensor', $data);
     }
+
 
     /**
      * Show the user profile page.

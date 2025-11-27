@@ -14,23 +14,71 @@ class SensorController
         $this->pdo = getDbConnection(); // Inisialisasi koneksi DB
         $this->sensorModel = new Sensor();
         $this->kontrolLogModel = new KontrolLog();
-        $this->deviceStatusModel = new DeviceStatus($this->pdo); // Teruskan koneksi DB ke model baru
+        // $this->deviceStatusModel = new DeviceStatus($this->pdo); // Teruskan koneksi DB ke model baru
     }
 
-    /**
-     * Endpoint to receive sensor data.
-     * This would be called by the IoT device (e.g., ESP32).
-     *
-     * Data is expected in the POST body as JSON.
-     * {
-     *   "suhu": 25.5,
-     *   "kelembaban": 60.2,
-     *   "kelembaban_tanah": 70.0,
-     *   "pompa_status": 0,
-     *   "kipas_status": 1,
-     *   "mode": "otomatis"
-     * }
-     */
+    public function index() {
+        header('Content-Type: application/json');
+        try {
+            $pdo = getDbConnection();
+
+            $stmt = $pdo->query("SELECT * FROM control_settings ORDER BY id DESC LIMIT 1");
+            $status = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($status) {
+                $response['mode']       = $status['batas_suhu'];
+                $response['batas_suhu'] = (float)$status['batas_suhu'];
+                $response['batas_soil'] = (int)$status['batas_soil'];
+                $response['kipas']      = (int)$status['kipas'];
+                $response['pompa']      = (int)$status['pompa'];
+            } else {
+            // Default jika kosong
+            echo json_encode([
+                'mode'       => 'auto',
+                'batas_suhu' => 30,
+                'batas_soil' => 40,
+                'kipas'      => 0,
+                'pompa'      => 0
+            ]);
+        }
+
+        } catch (PDOException $e) {
+            echo " <script>console_log( ".$e->getMessage(). ")</script>";
+        }
+
+        echo json_encode($response);
+    }
+    public function getControlStatus() {
+        header('Content-Type: application/json');
+        try {
+            $pdo = getDbConnection();
+
+            $stmt = $pdo->query("SELECT * FROM control_settings ORDER BY id DESC LIMIT 1");
+            $status = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($status) {
+                $response['mode']       = $status['mode'];
+                $response['batas_suhu'] = (float)$status['batas_suhu'];
+                $response['batas_soil'] = (int)$status['batas_soil'];
+                $response['kipas']      = (int)$status['kipas'];
+                $response['pompa']      = (int)$status['pompa'];
+            } else {
+            // Default jika kosong
+            echo json_encode([
+                'mode'       => 'auto',
+                'batas_suhu' => 30,
+                'batas_soil' => 40,
+                'kipas'      => 0,
+                'pompa'      => 0
+            ]);
+        }
+
+        } catch (PDOException $e) {
+            echo " <script>console_log( ".$e->getMessage(). ")</script>";
+        }
+
+        echo json_encode($response);
+    }
     public function log()
     {
         // Hanya izinkan metode POST
@@ -67,11 +115,73 @@ class SensorController
             echo json_encode(['error' => 'Terjadi kesalahan saat menyimpan data sensor: ' . $e->getMessage()]);
         }
     }
+    public function getControlStatuas() {
+        header('Content-Type: application/json');
+
+        $response = [
+            'mode' => 'auto',        // sementara auto, bisa ambil dari DB kalau sudah ada
+            'batas_suhu' => 30,      // ambil dari DB jika sudah ada
+            'batas_soil' => 40,      // ambil dari DB jika sudah ada
+            'kipas' => 0,
+            'pompa' => 0
+        ];
+
+        try {
+            $pdo = getDbConnection();
+
+            $stmt = $pdo->query("SELECT * FROM control_settings ORDER BY id DESC LIMIT 1");
+            $status = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($status) {
+                $response['kipas'] = (int)$status['kipas'];
+                $response['pompa'] = (int)$status['pompa'];
+            }
+
+        } catch (PDOException $e) {
+            // error_log("ERR: " . $e->getMessage());
+        }
+
+        echo json_encode($response);
+    }
+
+    public function setControlStatus() {
+        header("Content-Type: application/json");
+
+        $conn = new mysqli("localhost", "root", "", "smart_green_house");
+        if ($conn->connect_error) {
+            echo json_encode(["status" => "error", "message" => "DB connect error"]);
+            exit;
+        }
+
+        // Ambil input POST
+        $mode        = $_POST["mode"] ?? 'auto';
+        $kipas       = $_POST["kipas"] ?? null;
+        $pompa       = $_POST["pompa"] ?? null;
+        $batas_suhu  = $_POST["batas_suhu"] ?? null;
+        $batas_soil  = $_POST["batas_soil"] ?? null;
+
+        // Update database
+        $sql = "UPDATE control_settings SET 
+            mode = '$mode', 
+            kipas = '$kipas', 
+            pompa = '$pompa', 
+            batas_suhu = '$batas_suhu', 
+            batas_soil = '$batas_soil'
+            WHERE id = 1";
+
+        if ($conn->query($sql)) {
+            echo json_encode(["status" => "success"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => $conn->error]);
+        }
+
+        $conn->close();
+    }
 
     /**
      * Endpoint to get the current control status for ESP32 to poll.
      */
-    public function getControlStatus()
+    public function getControlStatus1()
     {
         header('Content-Type: application/json');
 

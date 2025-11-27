@@ -11,8 +11,8 @@ const char* ssid = "nanda";
 const char* password = "";
 
 const char* serverName = "http://192.168.43.126/smart_green_house"; 
-const char* LOG_ENDPOINT = "/sensor/log/";
-const char* CONTROL_ENDPOINT = "/sensor/getControlStatus.php";
+const char* LOG_ENDPOINT = "/sensor/log/log.php";
+const char* CONTROL_ENDPOINT = "/sensor/getControlStatus";
 
 // =======================
 // KONFIGURASI SENSOR
@@ -31,10 +31,24 @@ DHT dht(DHTPIN, DHTTYPE);
 #define RELAY_KIPAS2 27
 #define RELAY_POMPA  26
 
+#define RELAY_ON  1
+#define RELAY_OFF 0
+
 // =======================
 // LCD I2C
 // =======================
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+String modeSystem = "auto";  
+bool kipasManual = false;
+bool pompaManual = false;
+
+float batasSuhu = 30;   // default auto
+int   batasSoil = 40;   // default auto
+
+// Status relay untuk dikirim log
+bool currentKipasStatus = false;
+bool currentPompaStatus = false;
 
 // =======================
 // SETUP
@@ -50,7 +64,6 @@ void setup() {
     delay(1500);
     lcd.clear();
 
-    // Sensor
     dht.begin();
 
     // Relay
@@ -58,27 +71,17 @@ void setup() {
     pinMode(RELAY_KIPAS2, OUTPUT);
     pinMode(RELAY_POMPA, OUTPUT);
 
-    digitalWrite(RELAY_KIPAS1, HIGH);
-    digitalWrite(RELAY_KIPAS2, HIGH);
-    digitalWrite(RELAY_POMPA, HIGH);
+    // Semua relay OFF (HIGH karena active LOW)
+    digitalWrite(RELAY_KIPAS1, RELAY_OFF);
+    digitalWrite(RELAY_KIPAS2, RELAY_OFF);
+    digitalWrite(RELAY_POMPA, RELAY_OFF);
 
     // WiFi
-    lcd.setCursor(0,0);
     lcd.print("WiFi Connecting");
-
     WiFi.begin(ssid, password);
-    int dot = 0;
 
     while (WiFi.status() != WL_CONNECTED) {
-        delay(400);
-        lcd.setCursor(14 + dot, 1);
-        lcd.print(".");
-        dot++;
-        if (dot > 2) {
-            dot = 0;
-            lcd.setCursor(14,1);
-            lcd.print("   ");
-        }
+        delay(300);
     }
 
     lcd.clear();
@@ -88,9 +91,9 @@ void setup() {
 }
 
 // =======================
-// GET STATUS KONTROL MANUAL
+// GET STATUS KONTROL
 // =======================
-void getControlStatus() {
+void getControlStatus(float suhu, int soil) {
     if (WiFi.status() != WL_CONNECTED) return;
 
     HTTPClient http;
@@ -99,16 +102,43 @@ void getControlStatus() {
     int code = http.GET();
     if (code == HTTP_CODE_OK) {
         String response = http.getString();
-        StaticJsonDocument<96> doc;
+        StaticJsonDocument<128> doc;
 
-        if (!deserializeJson(doc, response)) {
-            bool kipas1 = doc["kipas1"] | false;
-            bool kipas2 = doc["kipas2"] | false;
-            bool pompa  = doc["pompa"]  | false;
+        if (deserializeJson(doc, response) == DeserializationError::Ok) {
+            
+            modeSystem = String((const char*)doc["mode"]);
+            batasSuhu  = doc["batas_suhu"] | 30;
+            batasSoil  = doc["batas_soil"] | 40;
 
-            digitalWrite(RELAY_KIPAS1, kipas1 ? LOW : HIGH);
-            digitalWrite(RELAY_KIPAS2, kipas2 ? LOW : HIGH);
-            digitalWrite(RELAY_POMPA,  pompa  ? LOW : HIGH);
+            kipasManual = doc["kipas"] | 0;
+            pompaManual = doc["pompa"] | 0;
+
+            bool kipasON;
+            bool pompaON;
+
+            // =============================
+            // MODE AUTO
+            // =============================
+            if (modeSystem == "auto") {
+                kipasON = (suhu > batasSuhu);
+                pompaON = (soil < batasSoil);
+
+            // =============================
+            // MODE MANUAL
+            // =============================
+            } else {
+                kipasON = kipasManual;
+                pompaON = pompaManual;
+            }
+
+            // Eksekusi relay
+            digitalWrite(RELAY_KIPAS1, kipasON ? RELAY_ON : RELAY_OFF);
+            digitalWrite(RELAY_KIPAS2, kipasON ? RELAY_ON : RELAY_OFF);
+            digitalWrite(RELAY_POMPA,  pompaON ? RELAY_ON : RELAY_OFF);
+
+            // Simpan untuk log
+            currentKipasStatus = kipasON;
+            currentPompaStatus = pompaON;
         }
     }
 
@@ -116,25 +146,23 @@ void getControlStatus() {
 }
 
 // =======================
-// KIRIM LOG SENSOR
+// KIRIM LOG SENSOR (GET)
 // =======================
 void sendSensorLog(float suhu, float kelembaban, int soil) {
     if (WiFi.status() != WL_CONNECTED) return;
     if (isnan(suhu) || isnan(kelembaban)) return;
 
     HTTPClient http;
-    http.begin(String(serverName) + LOG_ENDPOINT);
-    http.addHeader("Content-Type", "application/json");
 
-    StaticJsonDocument<128> doc;
-    doc["suhu"] = suhu;
-    doc["kelembaban"] = kelembaban;
-    doc["soil"] = soil;
+    String url = String(serverName) + LOG_ENDPOINT + 
+                 "?suhu=" + suhu + 
+                 "&kelembaban=" + kelembaban + 
+                 "&soil=" + soil +
+                 "&kipas_status=" + (currentKipasStatus ? 1 : 0) +
+                 "&pompa_status=" + (currentPompaStatus ? 1 : 0);
 
-    String payload;
-    serializeJson(doc, payload);
-
-    http.POST(payload);
+    http.begin(url);
+    http.GET();
     http.end();
 }
 
@@ -144,8 +172,8 @@ void sendSensorLog(float suhu, float kelembaban, int soil) {
 void loop() {
     float suhu = dht.readTemperature();
     float kelembaban = dht.readHumidity();
-    int soilValue = analogRead(SOIL_PIN);
 
+    int soilValue = analogRead(SOIL_PIN);
     int soil = (ADC_MAX_VALUE - soilValue) * 100 / ADC_MAX_VALUE;
     soil = constrain(soil, 0, 100);
 
@@ -154,27 +182,25 @@ void loop() {
     lcd.setCursor(0,0);
     lcd.print("T:");
     lcd.print(suhu, 1);
-    lcd.print((char)223);
-    lcd.print("C H:");
+    lcd.print(" H:");
     lcd.print(kelembaban, 0);
-    lcd.print("%");
 
     lcd.setCursor(0,1);
     lcd.print("Soil:");
     lcd.print(soil);
     lcd.print("%");
 
-    // Serial Output
+    // Serial
     Serial.println("==== SENSOR ====");
-    Serial.print("Suhu      : "); Serial.println(suhu);
+    Serial.print("Suhu: "); Serial.println(suhu);
     Serial.print("Kelembaban: "); Serial.println(kelembaban);
-    Serial.print("Soil      : "); Serial.println(soil);
+    Serial.print("Soil: "); Serial.println(soil);
 
     // Kirim ke server
     sendSensorLog(suhu, kelembaban, soil);
 
     // Ambil kontrol dari server
-    getControlStatus();
+    getControlStatus(suhu, soil);
 
     delay(5000);
 }

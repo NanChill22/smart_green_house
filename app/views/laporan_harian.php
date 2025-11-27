@@ -27,8 +27,8 @@
                                 <td><strong><?= htmlspecialchars(date('d F Y', strtotime($report['tanggal']))) ?></strong></td>
                                 <td class="text-center"><?= htmlspecialchars(number_format($report['suhu_rata'], 1)) ?></td>
                                 <td class="text-center"><?= htmlspecialchars(number_format($report['kelembaban_rata'], 1)) ?></td>
-                                <td class="text-center"><?= htmlspecialchars(round($report['pompa_durasi'] / 60)) ?></td>
-                                <td class="text-center"><?= htmlspecialchars(round($report['kipas_durasi'] / 60)) ?></td>
+                                <td class="text-center"><?= htmlspecialchars(round($report['pompa_durasi'])) ?></td>
+                                <td class="text-center"><?= htmlspecialchars(round($report['kipas_durasi'])) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

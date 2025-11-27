@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../config/config.php';
 
 $response = ['status' => 'error', 'message' => 'Invalid request'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// if ($_SERVER['SEQUEST_METHOD'] === 'GET') {
     // Read the raw POST data
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $response['message'] = 'Invalid or incomplete JSON data. Required keys: suhu, kelembaban, soil.';
     }
-} else {
-    $response['message'] = 'Only POST requests are accepted.';
-}
+// } else {
+//     $response['message'] = 'Only POST requests are accepted.';
+// }
 
 // Return the response
 echo json_encode($response);

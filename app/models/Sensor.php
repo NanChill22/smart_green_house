@@ -16,7 +16,12 @@ class Sensor
      */
     public function getLatestLog()
     {
-        $stmt = $this->pdo->query('SELECT suhu, kelembaban, kelembaban_tanah, pompa_status, kipas_status, mode, created_at FROM sensor_logs ORDER BY created_at DESC LIMIT 1');
+        $stmt = $this->pdo->query('SELECT suhu, kelembaban, kelembaban_tanah, created_at FROM sensor_data ORDER BY created_at DESC LIMIT 1');
+        return $stmt->fetch();
+    }
+    public function getDeviceLog()
+    {
+        $stmt = $this->pdo->query('SELECT pompa_status, kipas_status, last_updated FROM device_status ORDER BY last_updated DESC LIMIT 1');
         return $stmt->fetch();
     }
 
@@ -66,7 +71,7 @@ class Sensor
     public function createSensorReading($suhu, $kelembaban, $kelembabanTanah)
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO sensor_logs (suhu, kelembaban, kelembaban_tanah) VALUES (?, ?, ?)'
+            'INSERT INTO sensor_data (suhu, kelembaban, kelembaban_tanah) VALUES (?, ?, ?)'
         );
         return $stmt->execute([$suhu, $kelembaban, $kelembabanTanah]);
     }
@@ -102,7 +107,7 @@ class Sensor
      */
     public function getHistoricalData($days = 7)
     {
-        $stmt = $this->pdo->prepare('SELECT suhu, kelembaban, kelembaban_tanah, created_at FROM sensor_logs WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY) ORDER BY created_at ASC');
+        $stmt = $this->pdo->prepare('SELECT suhu, kelembaban, kelembaban_tanah, created_at FROM sensor_data WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY) ORDER BY created_at ASC');
         $stmt->bindValue(1, $days, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
