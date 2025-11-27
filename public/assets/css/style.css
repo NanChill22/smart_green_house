@@ -1,0 +1,238 @@
+/* Custom CSS for Smart Green House - Modern Design */
+
+/* General Body and Typography */
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    background-color: #f8f9fa; /* Light gray background */
+    color: #343a40; /* Darker text for readability */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navbar Enhancements */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.08); /* Subtle shadow for depth */
+    background-color: #212529 !important; /* Elegant modern grey */
+}
+.navbar-brand {
+    font-weight: 600;
+    color: #f8f9fa !important; /* Light text for dark navbar */
+}
+.navbar .nav-link {
+    color: #f8f9fa !important; /* Light text for dark navbar links */
+}
+
+/* Wrapper for main content and sidebar (after navbar) */
+.wrapper {
+    flex: 1; /* Allows wrapper to take remaining height */
+    display: flex; /* Use flexbox for sidebar and content */
+    width: 100%;
+    margin-top: 56px; /* Offset for fixed navbar */
+}
+
+/* Sidebar Offcanvas Styling */
+.offcanvas {
+    background: #ffffff; /* White background for sidebar */
+    border-right: 1px solid #e9ecef; /* Light border */
+    box-shadow: 2px 0 5px rgba(0,0,0,.05); /* Subtle shadow */
+    transition: all 0.3s ease-in-out;
+    padding-top: 20px; /* Adjust padding for content */
+}
+
+/* Sidebar specific styles for large screens */
+@media (min-width: 992px) {
+    .offcanvas-lg.offcanvas-start {
+        width: 250px;
+        position: fixed; /* Fixed sidebar on large screens */
+        top: 56px; /* Under navbar */
+        left: 0;
+        bottom: 0;
+        z-index: 1000; /* Ensure it's above other content */
+        transform: none !important; /* Always visible on large screens */
+        visibility: visible !important;
+        background-color: #ffffff;
+    }
+    .wrapper .flex-shrink-0 { /* This is the empty div in header.php for static sidebar width on large screens */
+        width: 250px; /* Match sidebar width */
+    }
+    .offcanvas-header {
+        display: none; /* Hide offcanvas header on large screens */
+    }
+}
+
+.offcanvas-body {
+    padding-top: 0;
+}
+
+.sidebar .btn-light {
+    color: #343a40;
+    text-align: left;
+    transition: all 0.2s ease;
+    border: none;
+    border-radius: .3rem;
+    padding: 10px 15px;
+}
+.sidebar .btn-light:hover,
+.sidebar .btn-light:focus,
+.sidebar .btn-light.active {
+    background-color: #e9ecef;
+    color: #007bff; /* Highlight color */
+    box-shadow: none;
+}
+.sidebar .h6 {
+    padding-left: 15px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #6c757d;
+}
+
+/* Main content (inside wrapper) */
+main.content { /* Target main tag specifically */
+    flex-grow: 1; /* Allow content to fill remaining space */
+    padding: 20px;
+    background-color: #f8f9fa; /* Ensure content background matches body */
+}
+
+/* Card Styling */
+.card {
+    border: none; /* Remove default border */
+    border-radius: .75rem; /* More rounded corners */
+    box-shadow: 0 4px 12px rgba(0,0,0,.05); /* Enhanced shadow for depth */
+    margin-bottom: 20px;
+}
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+    border-top-left-radius: .75rem;
+    border-top-right-radius: .75rem;
+}
+.card-title {
+    color: #343a40;
+    font-weight: 600;
+}
+
+/* Stat Cards (Dashboard) */
+.stat-card {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef !important;
+    border-radius: .5rem !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    margin-bottom: 15px;
+    padding: 20px;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.1);
+}
+.stat-card h4 {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+.stat-card p.fs-3 {
+    font-size: 1.8rem !important;
+    font-weight: 700;
+    line-height: 1;
+}
+.stat-card i {
+    margin-right: 8px;
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: .3rem;
+    border-color: #ced4da;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(0,123,255,.25);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    border-radius: .3rem;
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    border-radius: .3rem;
+    transition: all 0.2s ease;
+}
+.btn-success:hover {
+    background-color: #1e7e34;
+    border-color: #1e7e34;
+}
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    border-radius: .3rem;
+    transition: all 0.2s ease;
+}
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+}
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    border-radius: .3rem;
+    transition: all 0.2s ease;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+}
+
+/* Password Toggle Button */
+.input-group .btn-toggle-password {
+    position: absolute;
+    right: 1px; /* Adjust to align with input field */
+    top: 1px; /* Adjust to align with input field */
+    bottom: 1px;
+    height: calc(100% - 2px); /* Full height minus border */
+    z-index: 100;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    padding: .375rem .75rem; /* Match input padding */
+    border-radius: 0 .3rem .3rem 0; /* Match input border radius on right side */
+    display: flex;
+    align-items: center;
+}
+.input-group .btn-toggle-password:hover,
+.input-group .btn-toggle-password:focus {
+    color: #007bff; /* Highlight on hover */
+    box-shadow: none;
+    background-color: #e9ecef;
+}
+
+.input-group .form-control {
+    padding-right: 3.5rem; /* Sufficient space for icon button */
+}
+
+/* Footer */
+.footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    box-shadow: 0 -2px 4px rgba(0,0,0,.03);
+    padding: 15px 0;
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+/* Alerts */
+.alert {
+    border-radius: .3rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,.05);
+}
